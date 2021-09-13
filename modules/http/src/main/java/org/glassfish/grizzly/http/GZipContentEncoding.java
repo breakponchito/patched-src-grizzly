@@ -61,7 +61,7 @@ public class GZipContentEncoding implements ContentEncoding {
     }
 
     /**
-     * Construct <tt>GZipContentEncoding</tt> using specific buffer sizes, compression level and strategy.
+     * Construct <tt>GZipContentEncoding</tt> using specific buffer sizes, with default compression level and strategy.
      * @param inBufferSize input buffer size
      * @param outBufferSize output buffer size
      * @param encoderFilter {@link EncodingFilter}, which will decide if
