@@ -119,6 +119,7 @@ public abstract class NIOConnection implements Connection<SocketAddress> {
     protected volatile boolean isBlocking;
     protected volatile boolean isStandalone;        
     protected short zeroByteReadCount;
+    protected boolean timedOut;
     private final List<org.glassfish.grizzly.CloseListener> closeListeners =
             Collections.synchronizedList(new LinkedList<>());
     
@@ -1128,5 +1129,13 @@ public abstract class NIOConnection implements Connection<SocketAddress> {
                 return state;
             }
         }
+    }
+
+    public boolean isTimedOut() {
+        return timedOut;
+    }
+
+    public void setTimedOut(boolean timedOut) {
+        this.timedOut = timedOut;
     }
 }

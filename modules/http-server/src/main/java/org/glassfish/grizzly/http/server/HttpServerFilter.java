@@ -34,6 +34,7 @@ import org.glassfish.grizzly.http.Method;
 import org.glassfish.grizzly.http.server.util.HtmlHelper;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.glassfish.grizzly.impl.FutureImpl;
+import org.glassfish.grizzly.nio.NIOConnection;
 import org.glassfish.grizzly.utils.DelayedExecutor;
 
 import java.io.IOException;
@@ -270,6 +271,13 @@ public class HttpServerFilter extends BaseFilter
             // We're finishing the request processing
             final Response response = (Response) message;
             final Request request = response.getRequest();
+            if (connection instanceof NIOConnection &&
+                    ((NIOConnection) connection).isTimedOut()) {
+                HtmlHelper.setErrorAndSendTimeoutPage(request, response,
+                        new DefaultErrorPageGenerator(), new IOException("Connection Timeout"));
+                connection.closeSilently();
+                return ctx.getStopAction();
+            }
             return afterService(ctx, connection, request, response);
         }
     }

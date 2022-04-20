@@ -25,10 +25,12 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.Writer;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.nio.NIOConnection;
 
 /**
  * The Filter is responsible for tracking {@link Connection} activity and closing
@@ -377,7 +379,11 @@ public class IdleTimeoutFilter extends BaseFilter {
                 if (handler != null) {
                     handler.onTimeout(connection);
                 }
-                connection.closeSilently();
+                if (connection instanceof NIOConnection) {
+                    ((NIOConnection) connection).setTimedOut(true);
+                } else {
+                    connection.closeWithReason(new IOException("Connection timeout"));
+                }
             }
 
             return true;
