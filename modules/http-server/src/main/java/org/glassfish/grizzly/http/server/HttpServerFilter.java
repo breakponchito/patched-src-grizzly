@@ -273,7 +273,7 @@ public class HttpServerFilter extends BaseFilter
             final Request request = response.getRequest();
             if (connection instanceof NIOConnection &&
                     ((NIOConnection) connection).isTimedOut()) {
-                HtmlHelper.setErrorAndSendTimeoutPage(request, response,
+                HtmlHelper.sendTimeoutErrorPage(request, response,
                         new DefaultErrorPageGenerator(), new IOException("Connection Timeout"));
                 connection.closeSilently();
                 return ctx.getStopAction();

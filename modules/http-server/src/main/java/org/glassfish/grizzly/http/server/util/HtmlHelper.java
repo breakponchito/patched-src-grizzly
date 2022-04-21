@@ -133,7 +133,7 @@ public class HtmlHelper{
      *
      * @throws IOException
      */
-    public static void setErrorAndSendTimeoutPage(
+    public static void sendTimeoutErrorPage(
             final Request request, final Response response,
             final ErrorPageGenerator generator, final Throwable exception) throws IOException {
 
