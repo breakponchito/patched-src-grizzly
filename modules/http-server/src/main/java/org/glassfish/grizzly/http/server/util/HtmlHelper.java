@@ -123,37 +123,6 @@ public class HtmlHelper{
         }
     }
 
-    /**
-     * Generate and send a timeout error page.
-     *
-     * @param request
-     * @param response
-     * @param generator
-     * @param exception
-     *
-     * @throws IOException
-     */
-    public static void sendTimeoutErrorPage(
-            final Request request, final Response response,
-            final ErrorPageGenerator generator, final Throwable exception) throws IOException {
-
-        response.setStatus(408, HttpStatus.REQUEST_TIMEOUT_408.getReasonPhrase());
-
-        if (generator != null && !response.isCommitted()) {
-            final String errorPage = generator.generate(request, 408,
-                    HttpStatus.REQUEST_TIMEOUT_408.getReasonPhrase(),
-                    HttpStatus.REQUEST_TIMEOUT_408.getReasonPhrase(), exception);
-
-            final Writer writer = response.getWriter();
-
-            if (errorPage != null) {
-                response.setContentType("text/html");
-                writer.write(errorPage);
-            }
-            writer.close();
-        }
-    }
-
     public static void writeTraceMessage(final Request request,
             final Response response) throws IOException {
         response.setStatus(HttpStatus.OK_200);
