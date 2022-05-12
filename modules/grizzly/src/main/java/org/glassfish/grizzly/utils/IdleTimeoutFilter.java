@@ -16,6 +16,14 @@
 
 package org.glassfish.grizzly.utils;
 
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.attributes.Attribute;
+import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.nio.NIOConnection;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,12 +31,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.attributes.Attribute;
-import org.glassfish.grizzly.filterchain.BaseFilter;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.filterchain.NextAction;
 
 /**
  * The Filter is responsible for tracking {@link Connection} activity and closing
@@ -377,7 +379,11 @@ public class IdleTimeoutFilter extends BaseFilter {
                 if (handler != null) {
                     handler.onTimeout(connection);
                 }
-                connection.closeSilently();
+                if (connection instanceof NIOConnection) {
+                    return true;
+                } else {
+                    connection.closeSilently();
+                }
             }
 
             return true;

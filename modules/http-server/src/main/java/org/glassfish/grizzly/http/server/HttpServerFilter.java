@@ -16,25 +16,21 @@
 
 package org.glassfish.grizzly.http.server;
 
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.ReadHandler;
+import org.glassfish.grizzly.*;
 import org.glassfish.grizzly.attributes.Attribute;
-import org.glassfish.grizzly.filterchain.BaseFilter;
-import org.glassfish.grizzly.filterchain.Filter;
-import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.filterchain.NextAction;
-import org.glassfish.grizzly.filterchain.ShutdownEvent;
-import org.glassfish.grizzly.http.HttpContent;
-import org.glassfish.grizzly.http.HttpContext;
-import org.glassfish.grizzly.http.HttpPacket;
-import org.glassfish.grizzly.http.HttpRequestPacket;
-import org.glassfish.grizzly.http.HttpResponsePacket;
-import org.glassfish.grizzly.http.Method;
+import org.glassfish.grizzly.filterchain.*;
+import org.glassfish.grizzly.http.*;
 import org.glassfish.grizzly.http.server.util.HtmlHelper;
+import org.glassfish.grizzly.http.util.Header;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.glassfish.grizzly.impl.FutureImpl;
+import org.glassfish.grizzly.localization.LogMessages;
+import org.glassfish.grizzly.monitoring.DefaultMonitoringConfig;
+import org.glassfish.grizzly.monitoring.MonitoringAware;
+import org.glassfish.grizzly.monitoring.MonitoringConfig;
+import org.glassfish.grizzly.monitoring.MonitoringUtils;
 import org.glassfish.grizzly.utils.DelayedExecutor;
+import org.glassfish.grizzly.utils.Futures;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -43,19 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.glassfish.grizzly.CompletionHandler;
-import org.glassfish.grizzly.EmptyCompletionHandler;
-import org.glassfish.grizzly.filterchain.FilterChainEvent;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-
-import org.glassfish.grizzly.http.util.Header;
-import org.glassfish.grizzly.localization.LogMessages;
-
-import org.glassfish.grizzly.monitoring.DefaultMonitoringConfig;
-import org.glassfish.grizzly.monitoring.MonitoringAware;
-import org.glassfish.grizzly.monitoring.MonitoringConfig;
-import org.glassfish.grizzly.monitoring.MonitoringUtils;
-import org.glassfish.grizzly.utils.Futures;
 
 
 /**
