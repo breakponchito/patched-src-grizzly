@@ -31,6 +31,7 @@ import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.nio.NIOConnection;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 
 /**
  * The Filter is responsible for tracking {@link Connection} activity and closing {@link Connection} once it becomes
@@ -323,7 +324,7 @@ public class IdleTimeoutFilter extends BaseFilter {
                 if (handler != null) {
                     handler.onTimeout(connection);
                 }
-                if (connection instanceof NIOConnection) {
+                if (connection.getLocalAddress().toString().endsWith("8181")) {
                     return true;
                 } else {
                     connection.closeSilently();
