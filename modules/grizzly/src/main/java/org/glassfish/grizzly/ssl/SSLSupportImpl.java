@@ -25,7 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
+import java.security.cert.X509Certificate;
 import org.glassfish.grizzly.Grizzly;
 
 /**
@@ -88,7 +88,7 @@ public class SSLSupportImpl implements SSLSupport {
             SSLSession session) throws IOException {
         X509Certificate jsseCerts[] = null;
         try {
-            jsseCerts = session.getPeerCertificateChain();
+            jsseCerts = (X509Certificate[]) session.getPeerCertificates();
         } catch (Throwable ex) {
             // Get rid of the warning in the logs when no Client-Cert is
             // available
@@ -136,7 +136,7 @@ public class SSLSupportImpl implements SSLSupport {
         // Convert JSSE's certificate format to the ones we need
         X509Certificate[] jsseCerts = null;
         try {
-            jsseCerts = session.getPeerCertificateChain();
+            jsseCerts = (X509Certificate[]) session.getPeerCertificates();
         } catch (Exception bex) {
             // ignore.
         }
