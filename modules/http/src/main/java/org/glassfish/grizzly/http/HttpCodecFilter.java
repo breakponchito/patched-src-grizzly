@@ -41,12 +41,10 @@
 package org.glassfish.grizzly.http;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -164,8 +162,6 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
     private static final boolean isStrictHeaderNameValidationSet = Boolean.parseBoolean(System.getProperty(STRICT_HEADER_NAME_VALIDATION_RFC_9110));
 
     private static final boolean isStrictHeaderValueValidationSet = Boolean.parseBoolean(System.getProperty(STRICT_HEADER_VALUE_VALIDATION_RFC_9110));
-
-    private static final String REGEX_RFC_9110_INVALID_CHARACTERS = "(\\\\n)|(\\\\0)|(\\\\r)|(\\\\x00)|(\\\\x0A)|(\\\\x0D)";
     
     /**
      * File cache probes
@@ -960,6 +956,20 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         while (offset < limit) {
             final byte b = input[offset];
             if (b == Constants.CR) {
+                if (isStrictHeaderValueValidationSet) {
+                    if (offset + 1 < limit) {
+                        final byte b2 = input[offset + 1];
+                        if (b2 == Constants.LF) {
+                            // Continue for next parsing without the validation
+                            offset++;
+                            continue;
+                        }
+                    } else {
+                        // not enough data
+                        parsingState.offset = offset - arrayOffs;
+                        return -1;
+                    }
+                }
             } else if (b == Constants.LF) {
                 // Check if it's not multi line header
                 if (offset + 1 < limit) {
@@ -976,10 +986,6 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                         parsingState.headerValueStorage.setBytes(input,
                                 arrayOffs + parsingState.start,
                                 arrayOffs + parsingState.checkpoint2);
-                        if (isStrictHeaderValueValidationSet) {
-                            //make validation with regex mode
-                            validateRFC9110Characters(input, arrayOffs + parsingState.start, arrayOffs + parsingState.checkpoint2);
-                        }
                         return 0;
                     }
                 }
@@ -1001,34 +1007,14 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 parsingState.checkpoint2 = parsingState.checkpoint;
             }
 
+            if (isStrictHeaderValueValidationSet && !CookieHeaderParser.isText(b)) {
+                throw new IllegalStateException(
+                        "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+            }
             offset++;
         }
         parsingState.offset = offset - arrayOffs;
         return -1;
-    }
-
-    private static void validateRFC9110Characters(final byte[] headerValueContent, int start, int end) {
-        if (headerValueContent != null) {
-            if (isInvalidCharacterAvailable(start, end, headerValueContent)) {
-                throw new IllegalStateException(
-                        "An invalid character NUL, LF or CR found in the header value: " + headerValueContent.toString());
-            }
-        }
-    }
-
-    /**
-     * This method evaluates the String from the bytes that contains Header Value and validates if contains literal value
-     * of \n, \r or \0 , in case any of those characters are available return true
-     * @param start index of the starting point to extract characters from the byte array
-     * @param end index of the end point to extract characters from the byte array
-     * @param bytesFromByteChunk represents the bytes from the request message to be processed
-     * @return Boolean true if any of those characters are available
-     */
-    private static boolean isInvalidCharacterAvailable(int start, int end, byte[] bytesFromByteChunk) {
-        byte[] bytesFromHeaderValue = Arrays.copyOfRange(bytesFromByteChunk, start, end);
-        String uft8String = new String(bytesFromHeaderValue, StandardCharsets.UTF_8);
-        Pattern pattern = Pattern.compile(REGEX_RFC_9110_INVALID_CHARACTERS);
-        return pattern.matcher(uft8String).find();
     }
     
     private static void finalizeKnownHeaderNames(final HttpHeader httpHeader,
@@ -1249,7 +1235,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                     b -= Constants.LC_OFFSET;
                 }
                 input.put(offset, b);
-            } else if (b == Constants.CR) {
+            } else if (isStrictHeaderNameValidationSet && b == Constants.CR) {
                 parsingState.offset = offset;
                 final int eol = checkEOL(parsingState, input);
                 if (eol == 0) { // EOL
@@ -1261,7 +1247,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 }
             }
 
-            if (!CookieHeaderParser.isToken(b)) {
+            if (isStrictHeaderNameValidationSet && !CookieHeaderParser.isToken(b)) {
                 throw new IllegalStateException(
                         "An invalid character 0x" + Integer.toHexString(b) + " was found in the header name");
             }
@@ -1285,6 +1271,20 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         while(offset < limit) {
             final byte b = input.get(offset);
             if (b == Constants.CR) {
+                if (isStrictHeaderValueValidationSet) {
+                    if (offset + 1 < limit) {
+                        final byte b2 = input.get(offset + 1);
+                        if (b2 == Constants.LF) {
+                            // Continue for next parsing without the validation
+                            offset++;
+                            continue;
+                        }
+                    } else {
+                        // not enough data
+                        parsingState.offset = offset;
+                        return -1;
+                    }
+                }
             } else if (b == Constants.LF) {
                 // Check if it's not multi line header
                 if (offset + 1 < limit) {
@@ -1320,6 +1320,10 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 parsingState.checkpoint2 = parsingState.checkpoint;
             }
 
+            if (isStrictHeaderValueValidationSet && !CookieHeaderParser.isText(b)) {
+                throw new IllegalStateException(
+                        "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+            }
             offset++;
         }
         parsingState.offset = offset;
