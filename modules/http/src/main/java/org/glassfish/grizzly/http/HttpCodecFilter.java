@@ -719,8 +719,8 @@ public abstract class HttpCodecFilter extends HttpBaseFilter implements Monitori
                 if (!parseHeaderName(httpHeader, mimeHeaders, parsingState, input, end)) {
                     return false;
                 }
-                
-                if(parsingState.subState == 0 && parsingState.start== -1) {
+
+                if (parsingState.subState == 0 && parsingState.start == -1) {
                     return true;
                 }
 
