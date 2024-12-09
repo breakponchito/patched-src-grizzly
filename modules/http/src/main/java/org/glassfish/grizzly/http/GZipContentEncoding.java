@@ -52,7 +52,7 @@ public class GZipContentEncoding implements ContentEncoding {
 
     /**
      * Construct <tt>GZipContentEncoding</tt> using specific buffer sizes.
-     * 
+     *
      * @param inBufferSize input buffer size
      * @param outBufferSize output buffer size
      */
