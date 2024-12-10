@@ -814,12 +814,11 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                     parsingState.subState++;
                 }
                 case 1: { // parse header name
-                    final int result = parseHeaderName(httpHeader, mimeHeaders, parsingState, input, end);
-                    if (result == -1) {
+                    if (!parseHeaderName(httpHeader, mimeHeaders, parsingState, input, end)) {
                         return false;
-                    } else if (result == -2) { // EOL. ignore field-lines
-                        parsingState.subState = 0;
-                        parsingState.start = -1;
+                    }
+
+                    if (parsingState.subState == 0 && parsingState.start == -1) { // EOL. ignore field-lines
                         return true;
                     }
 
@@ -869,7 +868,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         }
     }
     
-    protected int parseHeaderName(final HttpHeader httpHeader,
+    protected boolean parseHeaderName(final HttpHeader httpHeader,
             final MimeHeaders mimeHeaders, final HeaderParsingState parsingState,
             final byte[] input, final int end) {
         final int arrayOffs = parsingState.arrayOffset;
@@ -888,7 +887,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 finalizeKnownHeaderNames(httpHeader, parsingState, input,
                         start, offset);
 
-                return 0;
+                return true;
             } else if ((b >= Constants.A) && (b <= Constants.Z)) {
                 if (!preserveHeaderCase) {
                     b -= Constants.LC_OFFSET;
@@ -899,7 +898,9 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 final int eol = checkEOL(parsingState, input, end);
                 if (eol == 0) { // EOL
                     // the offset is already increased in the check
-                    return -2;
+                    parsingState.subState = 0;
+                    parsingState.start = -1;
+                    return true;
                 } else if (eol == -2) { // not enough data
                     // by keeping the offset unchanged, we will recheck the EOL at the next opportunity.
                     break;
@@ -915,7 +916,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         }
 
         parsingState.offset = offset - arrayOffs;
-        return -1;
+        return false;
     }
 
     protected static int parseHeaderValue(final HttpHeader httpHeader,
@@ -1136,12 +1137,11 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                     parsingState.subState++;
                 }
                 case 1: { // parse header name
-                    final int result = parseHeaderName(httpHeader, mimeHeaders, parsingState, input);
-                    if (result == -1) {
+                    if (!parseHeaderName(httpHeader, mimeHeaders, parsingState, input)) {
                         return false;
-                    } else if (result == -2) { // EOL. ignore field-lines
-                        parsingState.subState = 0;
-                        parsingState.start = -1;
+                    }
+
+                    if (parsingState.subState == 0 && parsingState.start == -1) { // EOL. ignore field-lines                        
                         return true;
                     }
 
@@ -1188,7 +1188,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         }
     }
     
-    protected int parseHeaderName(final HttpHeader httpHeader,
+    protected boolean parseHeaderName(final HttpHeader httpHeader,
             final MimeHeaders mimeHeaders, final HeaderParsingState parsingState,
             final Buffer input) {
         final int limit = Math.min(input.limit(), parsingState.packetLimit);
@@ -1205,7 +1205,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 finalizeKnownHeaderNames(httpHeader, parsingState, input,
                         start, offset);
 
-                return 0;
+                return true;
             } else if ((b >= Constants.A) && (b <= Constants.Z)) {
                 if (!preserveHeaderCase) {
                     b -= Constants.LC_OFFSET;
@@ -1216,7 +1216,9 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                 final int eol = checkEOL(parsingState, input);
                 if (eol == 0) { // EOL
                     // the offset is already increased in the check
-                    return -2;
+                    parsingState.subState = 0;
+                    parsingState.start = -1;
+                    return true;
                 } else if (eol == -2) { // not enough data
                     // by keeping the offset unchanged, we will recheck the EOL at the next opportunity.
                     break;
@@ -1232,7 +1234,7 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
         }
 
         parsingState.offset = offset;
-        return -1;
+        return false;
     }
 
     protected static int parseHeaderValue(final HttpHeader httpHeader,
