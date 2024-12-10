@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2021, 2023 Contributors to the Eclipse Foundation.
+    Copyright 2021 Contributors to the Eclipse Foundation.
     Copyright (c) 2007, 2020 Oracle and/or its affiliates. All rights reserved.
 
     This program and the accompanying materials are made available under the
@@ -24,13 +24,12 @@
     <parent>
         <groupId>org.glassfish.grizzly</groupId>
         <artifactId>grizzly-bom</artifactId>
-        <version>4.0.2.payara-p1-SNAPSHOT</version>
+        <version>4.0.0.payara-p2-SNAPSHOT</version>
         <relativePath>boms/bom/pom.xml</relativePath>
     </parent>
 
     <artifactId>grizzly-project</artifactId>
-    <version>4.0.2.payara-p1-SNAPSHOT</version>
-    <!-- Version must be repeated so versions-maven-plugin:set works correctly -->
+    <version>4.0.0.payara-p2-SNAPSHOT</version> <!-- Version must be repeated so versions-maven-plugin:set works correctly -->
     <packaging>pom</packaging>
 
     <name>grizzly-project</name>
@@ -175,6 +174,7 @@
         </dependency>
     </dependencies>
 
+
     <build>
         <defaultGoal>install</defaultGoal>
         <directory>target</directory>
@@ -189,33 +189,32 @@
                 <directory>src/test/resources/</directory>
             </testResource>
         </testResources>
+
         <pluginManagement>
             <plugins>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.9.0</version>
                     <configuration>
-                        <release>11</release>
+                        <source>11</source>
+                        <target>11</target>
                         <compilerArgument>-Xlint:unchecked,deprecation,fallthrough,finally,cast,dep-ann,empty,overrides</compilerArgument>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.9</version>
-                    <configuration>
-                        <instructions>
-                            <_noimportjava>true</_noimportjava>
-                            <_runee>JavaSE-11</_runee>
-                        </instructions>
-                    </configuration>
+                    <version>5.1.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
+
         <plugins>
             <!-- Sets minimal Maven version to 3.6.3 -->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -236,8 +235,10 @@
                 </executions>
             </plugin>
 
-            <plugin>
+            <plugin><inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -250,7 +251,7 @@
                 </configuration>
             </plugin>
 
-            <plugin>
+            <plugin><inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <executions>
@@ -268,7 +269,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                    <doclint>none</doclint>
+                    <javadocVersion>1.8</javadocVersion>
                     <notimestamp>true</notimestamp>
                     <splitindex>true</splitindex>
                     <doctitle>${project.name} ${project.version}</doctitle>

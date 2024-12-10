@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +44,7 @@ import org.glassfish.grizzly.localization.LogMessages;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.utils.Exceptions;
 import org.glassfish.grizzly.utils.Futures;
+import org.glassfish.grizzly.utils.NullaryFunction;
 
 /**
  * Default {@link FilterChain} implementation
@@ -637,10 +637,10 @@ public final class DefaultFilterChain extends ListFacadeFilterChain {
         }
     }
 
-    private final class FiltersStateFactory implements Supplier<FiltersState> {
+    private final class FiltersStateFactory implements NullaryFunction<FiltersState> {
 
         @Override
-        public FiltersState get() {
+        public FiltersState evaluate() {
             return new FiltersState(size());
         }
     }

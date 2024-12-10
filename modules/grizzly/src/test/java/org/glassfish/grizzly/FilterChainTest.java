@@ -31,7 +31,6 @@ import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import java.util.function.Supplier;
 import org.glassfish.grizzly.asyncqueue.MessageCloner;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.attributes.AttributeBuilder;
@@ -53,6 +52,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.utils.EchoFilter;
 import org.glassfish.grizzly.utils.Futures;
+import org.glassfish.grizzly.utils.NullaryFunction;
 import org.glassfish.grizzly.utils.StringFilter;
 
 import junit.framework.TestCase;
@@ -79,10 +79,10 @@ public class FilterChainTest extends TestCase {
     private static Attribute<AtomicInteger> counterAttr = DEFAULT_ATTRIBUTE_BUILDER.createAttribute(FilterChainTest.class.getName() + ".counter");
 
     private static Attribute<CompositeBuffer> bufferAttr = DEFAULT_ATTRIBUTE_BUILDER.createAttribute(FilterChainTest.class.getName() + ".buffer",
-            new Supplier<CompositeBuffer>() {
+            new NullaryFunction<CompositeBuffer>() {
 
                 @Override
-                public CompositeBuffer get() {
+                public CompositeBuffer evaluate() {
                     return CompositeBuffer.newBuffer();
                 }
             });

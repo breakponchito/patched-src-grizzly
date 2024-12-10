@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2020 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -14,14 +14,20 @@
  * SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
  */
 
-module org.glassfish.grizzly.portunif {
+package org.glassfish.grizzly.attributes;
 
-    exports org.glassfish.grizzly.portunif;
-    exports org.glassfish.grizzly.portunif.finders;
-
-    opens org.glassfish.grizzly.portunif;
-    opens org.glassfish.grizzly.portunif.finders;
-    
-    requires java.logging;
-    requires org.glassfish.grizzly;
+/**
+ * {@link Attribute} initializer.
+ *
+ * Is used by {@link Attribute#get(AttributeHolder)}, if there is no attribute value stored in {@link AttributeHolder},
+ * or attribute value is <tt>null</tt>.
+ *
+ * @see Attribute
+ * @see AttributeHolder
+ *
+ * @author Ken Cavanaugh
+ * @deprecated pls. use {@link org.glassfish.grizzly.utils.NullaryFunction}
+ */
+@Deprecated
+public interface NullaryFunction<T> extends org.glassfish.grizzly.utils.NullaryFunction<T> {
 }

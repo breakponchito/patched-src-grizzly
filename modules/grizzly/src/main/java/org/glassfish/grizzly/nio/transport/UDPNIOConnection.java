@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2020 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -43,6 +42,8 @@ import org.glassfish.grizzly.nio.NIOConnection;
 import org.glassfish.grizzly.nio.SelectorRunner;
 import org.glassfish.grizzly.utils.Exceptions;
 import org.glassfish.grizzly.utils.Holder;
+import org.glassfish.grizzly.utils.JdkVersion;
+import org.glassfish.grizzly.utils.NullaryFunction;
 
 /**
  * {@link org.glassfish.grizzly.Connection} implementation for the {@link UDPNIOTransport}
@@ -64,25 +65,28 @@ public class UDPNIOConnection extends NIOConnection {
     private static final Method MK_UNBLOCK_METHOD;
 
     static {
+        JdkVersion jdkVersion = JdkVersion.getJdkVersion();
+        JdkVersion minimumVersion = JdkVersion.parseVersion("1.7.0");
 
         boolean isInitialized = false;
         Method join = null, joinWithSource = null, mkGetNetworkInterface = null, mkGetSourceAddress = null, mkDrop = null, mkBlock = null, mkUnblock = null;
+        if (minimumVersion.compareTo(jdkVersion) <= 0) { // If JDK version is >= 1.7
+            try {
+                join = DatagramChannel.class.getMethod("join", InetAddress.class, NetworkInterface.class);
+                joinWithSource = DatagramChannel.class.getMethod("join", InetAddress.class, NetworkInterface.class, InetAddress.class);
 
-        try {
-            join = DatagramChannel.class.getMethod("join", InetAddress.class, NetworkInterface.class);
-            joinWithSource = DatagramChannel.class.getMethod("join", InetAddress.class, NetworkInterface.class, InetAddress.class);
+                final Class membershipKeyClass = loadClass("java.nio.channels.MembershipKey");
 
-            final Class membershipKeyClass = loadClass("java.nio.channels.MembershipKey");
+                mkGetNetworkInterface = membershipKeyClass.getDeclaredMethod("networkInterface");
+                mkGetSourceAddress = membershipKeyClass.getDeclaredMethod("sourceAddress");
+                mkDrop = membershipKeyClass.getDeclaredMethod("drop");
 
-            mkGetNetworkInterface = membershipKeyClass.getDeclaredMethod("networkInterface");
-            mkGetSourceAddress = membershipKeyClass.getDeclaredMethod("sourceAddress");
-            mkDrop = membershipKeyClass.getDeclaredMethod("drop");
-
-            mkBlock = membershipKeyClass.getDeclaredMethod("block", InetAddress.class);
-            mkUnblock = membershipKeyClass.getDeclaredMethod("unblock", InetAddress.class);
-            isInitialized = true;
-        } catch (Throwable t) {
-            LOGGER.log(Level.WARNING, LogMessages.WARNING_GRIZZLY_CONNECTION_UDPMULTICASTING_EXCEPTIONE(), t);
+                mkBlock = membershipKeyClass.getDeclaredMethod("block", InetAddress.class);
+                mkUnblock = membershipKeyClass.getDeclaredMethod("unblock", InetAddress.class);
+                isInitialized = true;
+            } catch (Throwable t) {
+                LOGGER.log(Level.WARNING, LogMessages.WARNING_GRIZZLY_CONNECTION_UDPMULTICASTING_EXCEPTIONE(), t);
+            }
         }
 
         if (isInitialized) {
@@ -420,16 +424,16 @@ public class UDPNIOConnection extends NIOConnection {
             setMaxAsyncWriteQueueSize(
                     transportMaxAsyncWriteQueueSize == AsyncQueueWriter.AUTO_SIZE ? getWriteBufferSize() * 4 : transportMaxAsyncWriteQueueSize);
 
-            localSocketAddressHolder = Holder.lazyHolder(new Supplier<SocketAddress>() {
+            localSocketAddressHolder = Holder.lazyHolder(new NullaryFunction<SocketAddress>() {
                 @Override
-                public SocketAddress get() {
+                public SocketAddress evaluate() {
                     return ((DatagramChannel) channel).socket().getLocalSocketAddress();
                 }
             });
 
-            peerSocketAddressHolder = Holder.lazyHolder(new Supplier<SocketAddress>() {
+            peerSocketAddressHolder = Holder.lazyHolder(new NullaryFunction<SocketAddress>() {
                 @Override
-                public SocketAddress get() {
+                public SocketAddress evaluate() {
                     return ((DatagramChannel) channel).socket().getRemoteSocketAddress();
                 }
             });
