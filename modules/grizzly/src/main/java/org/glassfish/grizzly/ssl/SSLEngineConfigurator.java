@@ -1,6 +1,5 @@
 /*
- * Copyright 2023 Contributors to the Eclipse Foundation.
- * Copyright (c) 2008, 2023 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2020 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -24,7 +23,6 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import javax.net.ssl.SSLParameters;
 import org.glassfish.grizzly.Grizzly;
 
 /**
@@ -42,14 +40,33 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
     protected volatile SSLContext sslContext;
 
     /**
+     * The list of cipher suite
+     */
+    protected String[] enabledCipherSuites = null;
+    /**
+     * the list of protocols
+     */
+    protected String[] enabledProtocols = null;
+    /**
      * Client mode when handshaking.
      */
     protected boolean clientMode;
-
     /**
-     * Parameters to configure {@link SSLEngine}.
+     * Require client Authentication.
      */
-    private SSLParameters sslParameters;
+    protected boolean needClientAuth;
+    /**
+     * True when requesting authentication.
+     */
+    protected boolean wantClientAuth;
+    /**
+     * Has the enabled protocol configured.
+     */
+    private boolean isProtocolConfigured = false;
+    /**
+     * Has the enabled Cipher configured.
+     */
+    private boolean isCipherConfigured = false;
 
     /**
      * Create SSL Engine configuration basing on passed {@link SSLContext}.
@@ -77,15 +94,8 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
         this.sslContextConfiguration = null;
         this.sslContext = sslContext;
         this.clientMode = clientMode;
-
-        this.sslParameters = sslContext.getDefaultSSLParameters();
-        if (needClientAuth) {
-            sslParameters.setNeedClientAuth(true);
-        }
-
-        if (wantClientAuth) {
-            sslParameters.setWantClientAuth(true);
-        }
+        this.needClientAuth = needClientAuth;
+        this.wantClientAuth = wantClientAuth;
     }
 
     /**
@@ -108,32 +118,33 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      * @param wantClientAuth
      */
     public SSLEngineConfigurator(SSLContextConfigurator sslContextConfiguration, boolean clientMode, boolean needClientAuth, boolean wantClientAuth) {
+
         if (sslContextConfiguration == null) {
             throw new IllegalArgumentException("SSLContextConfigurator can not be null");
         }
 
         this.sslContextConfiguration = sslContextConfiguration;
         this.clientMode = clientMode;
-
-        this.sslParameters = new SSLParameters();
-        if (needClientAuth) {
-            sslParameters.setNeedClientAuth(true);
-        }
-
-        if (wantClientAuth) {
-            sslParameters.setWantClientAuth(true);
-        }
+        this.needClientAuth = needClientAuth;
+        this.wantClientAuth = wantClientAuth;
     }
 
     public SSLEngineConfigurator(SSLEngineConfigurator pattern) {
         this.sslContextConfiguration = pattern.sslContextConfiguration;
         this.sslContext = pattern.sslContext;
         this.clientMode = pattern.clientMode;
-        this.sslParameters = copy(pattern.sslParameters);
+        this.needClientAuth = pattern.needClientAuth;
+        this.wantClientAuth = pattern.wantClientAuth;
+
+        this.enabledCipherSuites = pattern.enabledCipherSuites != null ? Arrays.copyOf(pattern.enabledCipherSuites, pattern.enabledCipherSuites.length) : null;
+
+        this.enabledProtocols = pattern.enabledProtocols != null ? Arrays.copyOf(pattern.enabledProtocols, pattern.enabledProtocols.length) : null;
+
+        this.isCipherConfigured = pattern.isCipherConfigured;
+        this.isProtocolConfigured = pattern.isProtocolConfigured;
     }
 
     protected SSLEngineConfigurator() {
-        this.sslParameters = new SSLParameters();
     }
 
     /**
@@ -181,24 +192,29 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      * @return configured {@link SSLEngine}.
      */
     public SSLEngine configure(final SSLEngine sslEngine) {
-
-        SSLParameters params = copy(sslParameters);
-
-        String[] enabledCipherSuites = params.getProtocols();
         if (enabledCipherSuites != null) {
-            enabledCipherSuites = configureEnabledCiphers(sslEngine, enabledCipherSuites);
-            params.setCipherSuites(enabledCipherSuites);
+            if (!isCipherConfigured) {
+                enabledCipherSuites = configureEnabledCiphers(sslEngine, enabledCipherSuites);
+                isCipherConfigured = true;
+            }
+            sslEngine.setEnabledCipherSuites(enabledCipherSuites);
         }
 
-        String[] enabledProtocols = params.getProtocols();
         if (enabledProtocols != null) {
-            enabledProtocols = configureEnabledProtocols(sslEngine,
-                            enabledProtocols);
-            params.setProtocols(enabledProtocols);
+            if (!isProtocolConfigured) {
+                enabledProtocols = configureEnabledProtocols(sslEngine, enabledProtocols);
+                isProtocolConfigured = true;
+            }
+            sslEngine.setEnabledProtocols(enabledProtocols);
         }
 
         sslEngine.setUseClientMode(clientMode);
-        sslEngine.setSSLParameters(sslParameters);
+        if (wantClientAuth) {
+            sslEngine.setWantClientAuth(wantClientAuth);
+        }
+        if (needClientAuth) {
+            sslEngine.setNeedClientAuth(needClientAuth);
+        }
 
         return sslEngine;
     }
@@ -226,40 +242,29 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
     }
 
     public boolean isNeedClientAuth() {
-        return sslParameters.getNeedClientAuth();
+        return needClientAuth;
     }
 
     public SSLEngineConfigurator setNeedClientAuth(boolean needClientAuth) {
-        sslParameters.setNeedClientAuth(needClientAuth);
+        this.needClientAuth = needClientAuth;
         return this;
     }
 
     public boolean isWantClientAuth() {
-        return sslParameters.getWantClientAuth();
+        return wantClientAuth;
     }
 
     public SSLEngineConfigurator setWantClientAuth(boolean wantClientAuth) {
-        sslParameters.setWantClientAuth(wantClientAuth);
+        this.wantClientAuth = wantClientAuth;
         return this;
     }
 
     /**
-     * Apply {@link SSLParameters} to this SSLEngineConfigurator.
-     *
-     * @param sslParameters
-     * @return this SSLEngineConfigurator
-     */
-    public SSLEngineConfigurator setSSLParameters(SSLParameters sslParameters) {
-        this.sslParameters = copy(this.sslParameters);
-        return this;
-    }
-
-    /**
-     * @return an array of enabled cipher suites. Modifications made on the array
-     *      content won't be propagated to SSLEngineConfigurator
+     * @return an array of enabled cipher suites. Modifications made on the array content won't be propagated to
+     * SSLEngineConfigurator
      */
     public String[] getEnabledCipherSuites() {
-        return sslParameters.getCipherSuites();
+        return enabledCipherSuites != null ? Arrays.copyOf(enabledCipherSuites, enabledCipherSuites.length) : null;
     }
 
     /**
@@ -270,7 +275,7 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      * @return this SSLEngineConfigurator
      */
     public SSLEngineConfigurator setEnabledCipherSuites(final String[] enabledCipherSuites) {
-        sslParameters.setCipherSuites(enabledCipherSuites);
+        this.enabledCipherSuites = enabledCipherSuites != null ? Arrays.copyOf(enabledCipherSuites, enabledCipherSuites.length) : null;
         return this;
     }
 
@@ -279,7 +284,7 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      * SSLEngineConfigurator
      */
     public String[] getEnabledProtocols() {
-        return sslParameters.getProtocols();
+        return enabledProtocols != null ? Arrays.copyOf(enabledProtocols, enabledProtocols.length) : null;
     }
 
     /**
@@ -290,7 +295,25 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      * @return this SSLEngineConfigurator
      */
     public SSLEngineConfigurator setEnabledProtocols(final String[] enabledProtocols) {
-        sslParameters.setProtocols(enabledProtocols);
+        this.enabledProtocols = enabledProtocols != null ? Arrays.copyOf(enabledProtocols, enabledProtocols.length) : null;
+        return this;
+    }
+
+    public boolean isCipherConfigured() {
+        return isCipherConfigured;
+    }
+
+    public SSLEngineConfigurator setCipherConfigured(boolean isCipherConfigured) {
+        this.isCipherConfigured = isCipherConfigured;
+        return this;
+    }
+
+    public boolean isProtocolConfigured() {
+        return isProtocolConfigured;
+    }
+
+    public SSLEngineConfigurator setProtocolConfigured(boolean isProtocolConfigured) {
+        this.isProtocolConfigured = isProtocolConfigured;
         return this;
     }
 
@@ -308,7 +331,7 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
 
     /**
      * Return the list of allowed protocol.
-     *
+     * 
      * @return String[] an array of supported protocols.
      */
     private static String[] configureEnabledProtocols(SSLEngine sslEngine, String[] requestedProtocols) {
@@ -377,43 +400,17 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
         final StringBuilder sb = new StringBuilder();
         sb.append("SSLEngineConfigurator");
         sb.append("{clientMode=").append(clientMode);
-        sb.append(", enabledCipherSuites=")
-            .append(sslParameters.getCipherSuites() == null ? "null" : Arrays.toString(sslParameters.getCipherSuites()));
-        sb.append(", enabledProtocols=")
-            .append(sslParameters.getProtocols() == null ? "null" : Arrays.toString(sslParameters.getProtocols()));
-        sb.append(", needClientAuth=").append(sslParameters.getNeedClientAuth());
-        sb.append(", wantClientAuth=").append(sslParameters.getWantClientAuth());
+        sb.append(", enabledCipherSuites=").append(enabledCipherSuites == null ? "null" : Arrays.asList(enabledCipherSuites).toString());
+        sb.append(", enabledProtocols=").append(enabledProtocols == null ? "null" : Arrays.asList(enabledProtocols).toString());
+        sb.append(", needClientAuth=").append(needClientAuth);
+        sb.append(", wantClientAuth=").append(wantClientAuth);
+        sb.append(", isProtocolConfigured=").append(isProtocolConfigured);
+        sb.append(", isCipherConfigured=").append(isCipherConfigured);
         sb.append('}');
         return sb.toString();
     }
 
     public SSLEngineConfigurator copy() {
         return new SSLEngineConfigurator(this);
-    }
-
-    private SSLParameters copy(SSLParameters src) {
-        SSLParameters dest = new SSLParameters();
-
-        dest.setCipherSuites(src.getCipherSuites());
-        dest.setProtocols(src.getProtocols());
-
-        if (src.getNeedClientAuth()) {
-            dest.setNeedClientAuth(src.getNeedClientAuth());
-        }
-
-        if (src.getWantClientAuth()) {
-            dest.setWantClientAuth(src.getWantClientAuth());
-        }
-
-        dest.setAlgorithmConstraints(src.getAlgorithmConstraints());
-        dest.setApplicationProtocols(src.getApplicationProtocols());
-        dest.setEnableRetransmissions(src.getEnableRetransmissions());
-        dest.setEndpointIdentificationAlgorithm(src.getEndpointIdentificationAlgorithm());
-        dest.setMaximumPacketSize(src.getMaximumPacketSize());
-        dest.setSNIMatchers(src.getSNIMatchers());
-        dest.setServerNames(src.getServerNames());
-        dest.setUseCipherSuitesOrder(src.getUseCipherSuitesOrder());
-
-        return dest;
     }
 }

@@ -110,7 +110,6 @@
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <useModulePath>false</useModulePath>
                     <argLine>-XX:+HeapDumpOnOutOfMemoryError ${bootClasspath}</argLine>
                 </configuration>
             </plugin>

@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import org.glassfish.grizzly.Connection;
@@ -46,10 +45,10 @@ public class ActivityCheckFilter extends BaseFilter {
 
     public static final String ACTIVE_ATTRIBUTE_NAME = "connection-active-attribute";
     private static final Attribute<ActiveRecord> IDLE_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute(ACTIVE_ATTRIBUTE_NAME,
-            new Supplier<ActiveRecord>() {
+            new NullaryFunction<ActiveRecord>() {
 
                 @Override
-                public ActiveRecord get() {
+                public ActiveRecord evaluate() {
                     return new ActiveRecord();
                 }
             });

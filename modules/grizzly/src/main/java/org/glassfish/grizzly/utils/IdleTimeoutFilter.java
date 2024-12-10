@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
-import java.util.function.Supplier;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
@@ -51,10 +50,10 @@ public class IdleTimeoutFilter extends BaseFilter {
 
     public static final String IDLE_ATTRIBUTE_NAME = "connection-idle-attribute";
     private static final Attribute<IdleRecord> IDLE_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute(IDLE_ATTRIBUTE_NAME,
-            new Supplier<IdleRecord>() {
+            new NullaryFunction<IdleRecord>() {
 
                 @Override
-                public IdleRecord get() {
+                public IdleRecord evaluate() {
                     return new IdleRecord();
                 }
             });

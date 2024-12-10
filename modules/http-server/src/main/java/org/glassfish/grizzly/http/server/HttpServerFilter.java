@@ -325,10 +325,6 @@ public class HttpServerFilter extends BaseFilter implements MonitoringAware<Http
 
         final HttpContext context = request.getRequest().getProcessingState().getHttpContext();
 
-        if (request.getRequest().isUpgrade() && !response.getResponse().isUpgrade()) {
-            request.getRequest().setIgnoreContentModifiers(false);
-        }
-
         httpRequestInProgress.remove(context);
         response.finish();
         request.onAfterService();
