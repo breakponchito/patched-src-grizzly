@@ -849,6 +849,11 @@ public abstract class HttpCodecFilter extends HttpBaseFilter implements Monitori
                         parsingState.offset = offset + 2 - arrayOffs;
                         return -2;
                     } else {
+                        final byte b3 = input[offset - 1];
+                        if (!(b3 == Constants.CR) && isStrictHeaderValueValidationSet) {
+                            throw new IllegalStateException(
+                                    "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+                        }
                         parsingState.offset = offset + 1 - arrayOffs;
                         finalizeKnownHeaderValues(httpHeader, parsingState, input, arrayOffs + parsingState.start, arrayOffs + parsingState.checkpoint2);
                         parsingState.headerValueStorage.setBytes(input, arrayOffs + parsingState.start, arrayOffs + parsingState.checkpoint2);
@@ -1139,6 +1144,12 @@ public abstract class HttpCodecFilter extends HttpBaseFilter implements Monitori
                         parsingState.offset = offset + 2;
                         return -2;
                     } else {
+                        final byte b3 = input.get(offset - 1);
+                        if (!(b3 == Constants.CR) && isStrictHeaderValueValidationSet) {
+                            throw new IllegalStateException(
+                                    "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+                        }
+                        
                         parsingState.offset = offset + 1;
                         finalizeKnownHeaderValues(httpHeader, parsingState, input, parsingState.start, parsingState.checkpoint2);
                         parsingState.headerValueStorage.setBuffer(input, parsingState.start, parsingState.checkpoint2);
