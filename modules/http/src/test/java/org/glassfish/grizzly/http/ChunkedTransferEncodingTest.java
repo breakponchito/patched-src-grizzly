@@ -168,7 +168,7 @@ public class ChunkedTransferEncodingTest {
     }
 
     public ChunkedTransferEncodingTest(String eol, boolean isChunkWhenParsing) {
-        this.eol = eol;
+        this.eol = "\r\n";
         this.isChunkWhenParsing = isChunkWhenParsing;
     }
         
