@@ -677,7 +677,7 @@ public class HttpSemanticsTest extends TestCase {
     public void testExplicitConnectionCloseHeader() throws Throwable {
         final TCPNIOConnection connection = new TCPNIOConnection(TCPNIOTransportBuilder.newInstance().build(), null);
 
-        Buffer requestBuf = Buffers.wrap(connection.getMemoryManager(), "GET /path HTTP/1.1\n" + "Host: localhost:" + PORT + '\n' + '\n');
+        Buffer requestBuf = Buffers.wrap(connection.getMemoryManager(), "GET /path HTTP/1.1\r\n" + "Host: localhost:" + PORT + "\r\n" + "\r\n");
 
         FilterChainContext ctx = FilterChainContext.create(connection);
         ctx.setMessage(requestBuf);
