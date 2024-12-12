@@ -135,9 +135,9 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
 
     public static final String STRICT_HEADER_VALUE_VALIDATION_RFC_9110 = "org.glassfish.grizzly.http.STRICT_HEADER_VALUE_VALIDATION_RFC_9110";
 
-    private static final boolean isStrictHeaderNameValidationSet = Boolean.parseBoolean(System.getProperty(STRICT_HEADER_NAME_VALIDATION_RFC_9110));
+    private static final boolean isStrictHeaderNameValidationSet = Boolean.parseBoolean((System.getProperty(STRICT_HEADER_NAME_VALIDATION_RFC_9110) == null) ? "true" : System.getProperty(STRICT_HEADER_NAME_VALIDATION_RFC_9110));
 
-    private static final boolean isStrictHeaderValueValidationSet = Boolean.parseBoolean(System.getProperty(STRICT_HEADER_VALUE_VALIDATION_RFC_9110));
+    private static final boolean isStrictHeaderValueValidationSet = Boolean.parseBoolean((System.getProperty(STRICT_HEADER_VALUE_VALIDATION_RFC_9110) == null) ? "true": System.getProperty(STRICT_HEADER_VALUE_VALIDATION_RFC_9110));
     
     /**
      * File cache probes
@@ -956,6 +956,11 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                         parsingState.offset = offset + 2 - arrayOffs;
                         return -2;
                     } else {
+                        final byte b3 = input[offset - 1];
+                        if (!(b3 == Constants.CR) && isStrictHeaderValueValidationSet) {
+                            throw new IllegalStateException(
+                                    "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+                        }
                         parsingState.offset = offset + 1 - arrayOffs;
                         finalizeKnownHeaderValues(httpHeader, parsingState, input,
                                 arrayOffs + parsingState.start,
@@ -1272,6 +1277,11 @@ public abstract class HttpCodecFilter extends HttpBaseFilter
                         parsingState.offset = offset + 2;
                         return -2;
                     } else {
+                        final byte b3 = input.get(offset - 1);
+                        if (!(b3 == Constants.CR) && isStrictHeaderValueValidationSet) {
+                            throw new IllegalStateException(
+                                    "An invalid character 0x" + Integer.toHexString(b) + " was found in the header value");
+                        }
                         parsingState.offset = offset + 1;
                         finalizeKnownHeaderValues(httpHeader, parsingState, input,
                                 parsingState.start, parsingState.checkpoint2);
