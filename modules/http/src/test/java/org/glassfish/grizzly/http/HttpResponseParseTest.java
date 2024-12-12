@@ -84,7 +84,7 @@ public class HttpResponseParseTest extends TestCase {
         headers.put("Header1", new Pair<>("localhost", "localhost"));
         headers.put("Multi-line", new Pair<>("first\n          second\n       third", "first seconds third"));
         headers.put("Content-length", new Pair<>("2345", "2345"));
-        doHttpResponseTest("HTTP/1.0", 200, "DONE", headers, "\n");
+        doHttpResponseTest("HTTP/1.0", 200, "DONE", headers, "\r\n");
     }
 
     public void testDecoder100continueThen200() {

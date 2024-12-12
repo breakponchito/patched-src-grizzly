@@ -184,9 +184,9 @@ public class HttpRequestParseTest extends TestCase {
     public void testHeadersN() throws Exception {
         Map<String, Pair<String, String>> headers = new HashMap<>();
         headers.put("Host", new Pair<>("localhost", "localhost"));
-        headers.put("Multi-line", new Pair<>("first\r\n          second\n       third", "first second third"));
+        headers.put("Multi-line", new Pair<>("first\r\n          second\r\n       third", "first second third"));
         headers.put("Content-length", new Pair<>("2345", "2345"));
-        doHttpRequestTest("POST", "/index.html", "HTTP/1.1", headers, "\n");
+        doHttpRequestTest("POST", "/index.html", "HTTP/1.1", headers, "\r\n");
     }
 
     public void testCompleteURI() throws Exception {
@@ -194,7 +194,7 @@ public class HttpRequestParseTest extends TestCase {
         headers.put("Host", new Pair<String, String>(null, "localhost:8180"));
         headers.put("Content-length", new Pair<>("2345", "2345"));
         doHttpRequestTest(new Pair<>("POST", "POST"), new Pair<>("http://localhost:8180/index.html", "/index.html"),
-                new Pair<>("HTTP/1.1", "HTTP/1.1"), headers, "\n", false);
+                new Pair<>("HTTP/1.1", "HTTP/1.1"), headers, "\r\n", false);
     }
 
     public void testCompleteEmptyURI() throws Exception {
@@ -202,7 +202,7 @@ public class HttpRequestParseTest extends TestCase {
         headers.put("Host", new Pair<String, String>(null, "localhost:8180"));
         headers.put("Content-length", new Pair<>("2345", "2345"));
         doHttpRequestTest(new Pair<>("POST", "POST"), new Pair<>("http://localhost:8180", "/"),
-                new Pair<>("HTTP/1.1", "HTTP/1.1"), headers, "\n", false);
+                new Pair<>("HTTP/1.1", "HTTP/1.1"), headers, "\r\n", false);
     }
 
     public void testDecoderOK() {
@@ -246,7 +246,7 @@ public class HttpRequestParseTest extends TestCase {
     }
 
     public void testDecoderOverflowHeader2() {
-        doTestDecoder("GET /index.html HTTP/1.0\nHost: localhost\n\n", 42);
+        doTestDecoder("GET /index.html HTTP/1.0\r\nHost: localhost\r\n\r\n", 50);
     }
 
     public void testDecoderOverflowHeader3() {
@@ -263,7 +263,7 @@ public class HttpRequestParseTest extends TestCase {
     }
 
     public void testChunkedTransferEncodingCaseInsensitive() {
-        HttpPacket packet = doTestDecoder("POST /index.html HTTP/1.1\nHost: localhost\nTransfer-Encoding: CHUNked\r\n\r\n0\r\n\r\n", 4096);
+        HttpPacket packet = doTestDecoder("POST /index.html HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: CHUNked\r\n\r\n0\r\n\r\n", 4096);
         assertTrue(packet.getHttpHeader().isChunked());
     }
 
