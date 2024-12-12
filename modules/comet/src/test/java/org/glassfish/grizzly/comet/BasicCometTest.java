@@ -105,7 +105,7 @@ public class BasicCometTest extends TestCase {
         s.setSoLinger(false, 0);
         s.setSoTimeout(500);
         OutputStream os = s.getOutputStream();
-        String a = "GET " + alias + " HTTP/1.1\n" + "Host: localhost:" + PORT + "\n\n";
+        String a = "GET " + alias + " HTTP/1.1\r\n" + "Host: localhost:" + PORT + "\r\n\r\n";
         System.out.println("     " + a);
         os.write(a.getBytes());
         os.flush();
@@ -167,10 +167,10 @@ public class BasicCometTest extends TestCase {
         Socket s = new Socket("localhost", PORT);
         s.setSoTimeout(10 * 1000);
         OutputStream os = s.getOutputStream();
-        String cometRequest = "GET " + alias + " HTTP/1.1\nHost: localhost:" + PORT + "\n\n";
-        String staticRequest = "GET /static HTTP/1.1\nHost: localhost:" + PORT + "\n\n";
+        String cometRequest = "GET " + alias + " HTTP/1.1\r\nHost: localhost:" + PORT + "\r\n\r\n";
+        String staticRequest = "GET /static HTTP/1.1\r\nHost: localhost:" + PORT + "\r\n\r\n";
 
-        String lastCometRequest = "GET " + alias + " HTTP/1.1\n" + "Host: localhost:" + PORT + "\nConnection: close\n\n";
+        String lastCometRequest = "GET " + alias + " HTTP/1.1\r\n" + "Host: localhost:" + PORT + "\r\nConnection: close\r\n\r\n";
 
         String pipelinedRequest1 = cometRequest + staticRequest + cometRequest;
         String pipelinedRequest2 = cometRequest + staticRequest + lastCometRequest;
@@ -256,8 +256,8 @@ public class BasicCometTest extends TestCase {
         Socket s = new Socket("localhost", PORT);
         s.setSoTimeout(10 * 1000);
         OutputStream os = s.getOutputStream();
-        String cometRequest = "GET " + alias + " HTTP/1.1\nHost: localhost:" + PORT + "\n\n";
-        String staticRequest = "GET /static HTTP/1.1\nHost: localhost:" + PORT + "\n\n";
+        String cometRequest = "GET " + alias + " HTTP/1.1\r\nHost: localhost:" + PORT + "\r\n\r\n";
+        String staticRequest = "GET /static HTTP/1.1\r\nHost: localhost:" + PORT + "\r\n\r\n";
 
         try {
             os.write(cometRequest.getBytes());
