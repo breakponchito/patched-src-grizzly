@@ -16,6 +16,8 @@
 
 package org.glassfish.grizzly.attributes;
 
+import org.glassfish.grizzly.utils.NullaryFunction;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,7 +32,6 @@ import java.util.function.Supplier;
  * This implementation is thread-safe.
  *
  * @see AttributeHolder
- * @see NamedAttributeHolder
  *
  * @author Alexey Stashok
  */
@@ -62,7 +63,13 @@ public final class IndexedAttributeHolder implements AttributeHolder {
      */
     @Override
     public Object getAttribute(final String name) {
-        return getAttribute(name, null);
+        return getAttribute(name, (Supplier) null);
+    }
+
+    @Deprecated
+    @Override
+    public Object getAttribute (String name, NullaryFunction initializer) {
+        return this.getAttribute(name, NullaryFunction.toSupplier(initializer));
     }
 
     /**
@@ -286,7 +293,13 @@ public final class IndexedAttributeHolder implements AttributeHolder {
          */
         @Override
         public Object getAttribute(final int index) {
-            return getAttribute(index, null);
+
+            return getAttribute(index, (Supplier) null);
+        }
+
+        @Override
+        public Object getAttribute (int index, NullaryFunction initializer) {
+            return this.getAttribute(index, NullaryFunction.toSupplier(initializer));
         }
 
         /**

@@ -58,6 +58,18 @@ public class DefaultAttributeBuilder implements AttributeBuilder {
         return attribute;
     }
 
+    @Deprecated
+    @Override
+    public <T> Attribute<T> createAttribute (String name, NullaryFunction<T> initializer) {
+        return this.createAttribute(name, org.glassfish.grizzly.utils.NullaryFunction.toSupplier(initializer));
+    }
+
+    @Deprecated
+    @Override
+    public <T> Attribute<T> createAttribute (String name, org.glassfish.grizzly.utils.NullaryFunction<T> initializer) {
+        return this.createAttribute(name, org.glassfish.grizzly.utils.NullaryFunction.toSupplier(initializer));
+    }
+
     /**
      * {@inheritDoc}
      */

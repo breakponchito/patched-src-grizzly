@@ -42,10 +42,33 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
     protected volatile SSLContext sslContext;
 
     /**
+     * @deprecated Use {@link SSLEngineConfigurator#getEnabledCipherSuites()}
+     * and {@link SSLEngineConfigurator#setEnabledCipherSuites(String[])} instead.
+     */
+    @Deprecated
+    protected String[] enabledCipherSuites = null;
+    /**
+     * @deprecated Use {@link SSLEngineConfigurator#getEnabledProtocols()}
+     * and {@link SSLEngineConfigurator#setEnabledProtocols(String[])} instead.
+     */
+    @Deprecated
+    protected String[] enabledProtocols = null;
+    /**
      * Client mode when handshaking.
      */
     protected boolean clientMode;
-
+    /**
+     * @deprecated Use {@link SSLEngineConfigurator#isNeedClientAuth()}
+     * and {@link SSLEngineConfigurator#setNeedClientAuth(boolean)} instead.
+     */
+    @Deprecated
+    protected boolean needClientAuth;
+    /**
+     * @deprecated Use {@link SSLEngineConfigurator#isWantClientAuth()}
+     * and {@link SSLEngineConfigurator#setWantClientAuth(boolean)} instead.
+     */
+    @Deprecated
+    protected boolean wantClientAuth;
     /**
      * Parameters to configure {@link SSLEngine}.
      */
@@ -271,6 +294,7 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      */
     public SSLEngineConfigurator setEnabledCipherSuites(final String[] enabledCipherSuites) {
         sslParameters.setCipherSuites(enabledCipherSuites);
+        this.enabledCipherSuites = enabledCipherSuites;
         return this;
     }
 
@@ -291,6 +315,43 @@ public class SSLEngineConfigurator implements SSLEngineFactory {
      */
     public SSLEngineConfigurator setEnabledProtocols(final String[] enabledProtocols) {
         sslParameters.setProtocols(enabledProtocols);
+        this.enabledProtocols = enabledProtocols;
+        return this;
+    }
+
+    /**
+     * @deprecated This method is no longer functional, do not use.
+     * @return true
+     */
+    @Deprecated
+    public boolean isCipherConfigured () {
+        return true;
+    }
+
+    /**
+     * @deprecated This method is no longer functional, do not use.
+     * @return this
+     */
+    @Deprecated
+    public SSLEngineConfigurator setCipherConfigured(boolean isCipherConfigured) {
+        return this;
+    }
+
+    /**
+     * @deprecated This method is no longer functional, do not use.
+     * @return true
+     */
+    @Deprecated
+    public boolean isProtocolConfigured() {
+        return true;
+    }
+
+    /**
+     * @deprecated This method is no longer functional, do not use.
+     * @return this
+     */
+    @Deprecated
+    public SSLEngineConfigurator setProtocolConfigured(boolean isProtocolConfigured) {
         return this;
     }
 

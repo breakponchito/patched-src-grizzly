@@ -16,6 +16,8 @@
 
 package org.glassfish.grizzly.attributes;
 
+import org.glassfish.grizzly.utils.NullaryFunction;
+
 import java.util.function.Supplier;
 
 /**
@@ -43,6 +45,19 @@ public interface IndexedAttributeAccessor {
      * @since 2.3.18
      */
     Object getAttribute(int index, Supplier initializer);
+
+    /**
+     * Internal method for dynamic attribute support. Return the value of the attribute by index. If the attribute with such
+     * index is not set, set it to the default value, using the <tt>initializer</tt>, and return the default.
+     *
+     * @param index the attribute index
+     * @param initializer the default value {@link org.glassfish.grizzly.utils.NullaryFunction}
+     * @return the value of the attribute by index
+     * @since 2.3.18
+     * @deprecated Use {@link IndexedAttributeAccessor#getAttribute(int, Supplier)} instead.
+     */
+    @Deprecated
+    Object getAttribute(int index, NullaryFunction initializer);
 
     /**
      * Internal method for dynamic attribute support. Set the attribute with the index to value.

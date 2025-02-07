@@ -16,6 +16,8 @@
 
 package org.glassfish.grizzly.attributes;
 
+import org.glassfish.grizzly.utils.NullaryFunction;
+
 import java.util.function.Supplier;
 
 /**
@@ -57,6 +59,13 @@ public final class Attribute<T> {
                 return defaultValue;
             }
         });
+    }
+
+    protected Attribute(final AttributeBuilder builder, final String name, final int index, final NullaryFunction<T> initializer) {
+        this.builder = builder;
+        this.name = name;
+        this.attributeIndex = index;
+        this.initializer = NullaryFunction.toSupplier(initializer);
     }
 
     protected Attribute(final AttributeBuilder builder, final String name, final int index, final Supplier<T> initializer) {

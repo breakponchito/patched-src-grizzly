@@ -16,6 +16,8 @@
 
 package org.glassfish.grizzly.attributes;
 
+import org.glassfish.grizzly.utils.NullaryFunction;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -53,7 +55,13 @@ final class UnsafeAttributeHolder implements AttributeHolder {
 
     @Override
     public Object getAttribute(final String name) {
-        return getAttribute(name, null);
+        return getAttribute(name, (Supplier) null);
+    }
+
+    @Deprecated
+    @Override
+    public Object getAttribute (String name, NullaryFunction initializer) {
+        return this.getAttribute(name, NullaryFunction.toSupplier(initializer));
     }
 
     @Override
@@ -234,7 +242,13 @@ final class UnsafeAttributeHolder implements AttributeHolder {
     protected final class IndexedAttributeAccessorImpl implements IndexedAttributeAccessor {
         @Override
         public Object getAttribute(final int index) {
-            return getAttribute(index, null);
+            return getAttribute(index, (Supplier) null);
+        }
+
+        @Deprecated
+        @Override
+        public Object getAttribute (int index, NullaryFunction initializer) {
+            return this.getAttribute(index, NullaryFunction.toSupplier(initializer));
         }
 
         @Override
