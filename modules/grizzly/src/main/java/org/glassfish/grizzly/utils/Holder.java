@@ -44,11 +44,33 @@ public abstract class Holder<E> {
         };
     }
 
+    @Deprecated
+    public static <T> LazyHolder<T> lazyHolder(final NullaryFunction<T> factory) {
+        return new LazyHolder<T>() {
+
+            @Override
+            protected T evaluate() {
+                return factory.get();
+            }
+        };
+    }
+
     public static <T> LazyHolder<T> lazyHolder(final Supplier<T> factory) {
         return new LazyHolder<T>() {
 
             @Override
             protected T evaluate() {
+                return factory.get();
+            }
+        };
+    }
+
+    @Deprecated
+    public static LazyIntHolder lazyIntHolder(final NullaryFunction<Integer> factory) {
+        return new LazyIntHolder() {
+
+            @Override
+            protected int evaluate() {
                 return factory.get();
             }
         };

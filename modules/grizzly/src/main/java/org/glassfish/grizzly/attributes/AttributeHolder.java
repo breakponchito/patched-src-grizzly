@@ -16,6 +16,8 @@
 
 package org.glassfish.grizzly.attributes;
 
+import org.glassfish.grizzly.utils.NullaryFunction;
+
 import java.util.Set;
 
 import java.util.function.Supplier;
@@ -24,7 +26,6 @@ import java.util.function.Supplier;
  * Interface declares common functionality for objects, which have associated {@link Attribute}s.
  *
  * @see IndexedAttributeHolder
- * @see NamedAttributeHolder
  *
  * @author Alexey Stashok
  */
@@ -63,6 +64,19 @@ public interface AttributeHolder {
      * @since 2.3.18
      */
     Object getAttribute(String name, Supplier initializer);
+
+    /**
+     * Return an object based on a name.
+     *
+     * @param name - name of an attribute
+     * @param initializer the initializer to be used to assign a default attribute value, in case it hasn't been assigned
+     * @return - attribute value for the <tt>name</tt>, null if <tt>name</tt> does not exist in <tt>attributes</tt>
+     *
+     * @since 2.3.18
+     * @deprecated Use {@link AttributeHolder#getAttribute(String, Supplier)} instead.
+     */
+    @Deprecated
+    Object getAttribute(String name, NullaryFunction initializer);
 
     /**
      * Return a {@link Set} of attribute names.

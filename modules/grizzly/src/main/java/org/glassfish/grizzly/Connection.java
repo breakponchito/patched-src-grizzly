@@ -26,6 +26,7 @@ import org.glassfish.grizzly.attributes.AttributeStorage;
 import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.monitoring.MonitoringAware;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
+import org.glassfish.grizzly.utils.NullaryFunction;
 
 /**
  * Common interface, which represents any kind of connection.
@@ -142,6 +143,19 @@ public interface Connection<L> extends Readable<L>, Writeable<L>, Closeable, Att
      * to process {@link Connection} I/O events, in case if this {@link Connection}'s {@link Processor} is <tt>null</tt>.
      */
     void setProcessorSelector(ProcessorSelector preferableProcessorSelector);
+
+    /**
+     * Returns the {@link Processor} state associated with this <tt>Connection</tt>.
+     *
+     * @param <E> state of the {@link Processor}
+     * @param processor {@link Processor}
+     * @param factory factory that is used to initialise the state
+     *
+     * @return the {@link Processor} state associated with this <tt>Connection</tt>.
+     * @deprecated Use {@link Connection#obtainProcessorState(Processor, Supplier)} instead.
+     */
+    @Deprecated
+    <E> E obtainProcessorState(Processor processor, NullaryFunction<E> factory);
 
     /**
      * Returns the {@link Processor} state associated with this <tt>Connection</tt>.

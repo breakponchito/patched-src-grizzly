@@ -68,6 +68,7 @@ import org.glassfish.grizzly.monitoring.DefaultMonitoringConfig;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
 import org.glassfish.grizzly.utils.CompletionHandlerAdapter;
 import org.glassfish.grizzly.utils.Futures;
+import org.glassfish.grizzly.utils.NullaryFunction;
 
 /**
  * Common {@link Connection} implementation for Java NIO <tt>Connection</tt>s.
@@ -312,6 +313,12 @@ public abstract class NIOConnection implements Connection<SocketAddress> {
     @Override
     public void setProcessorSelector(final ProcessorSelector preferableProcessorSelector) {
         this.processorSelector = preferableProcessorSelector;
+    }
+
+    @Deprecated
+    @Override
+    public <E> E obtainProcessorState(final Processor processor, final NullaryFunction<E> factory) {
+        return processorStateStorage.getState(processor, factory);
     }
 
     @Override

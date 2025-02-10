@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.attributes.AttributeBuilder;
 import org.glassfish.grizzly.attributes.AttributeHolder;
+import org.glassfish.grizzly.attributes.NullaryFunction;
 import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.monitoring.MonitoringConfig;
 import org.glassfish.grizzly.nio.NIOConnection;
@@ -145,6 +146,16 @@ public class TestDefaults {
 
         @Override
         public <T> Attribute<T> createAttribute(String name, Supplier<T> initializer) {
+            return null;
+        }
+
+        @Override
+        public <T> Attribute<T> createAttribute (String name, NullaryFunction<T> initializer) {
+            return null;
+        }
+
+        @Override
+        public <T> Attribute<T> createAttribute (String name, org.glassfish.grizzly.utils.NullaryFunction<T> initializer) {
             return null;
         }
 
