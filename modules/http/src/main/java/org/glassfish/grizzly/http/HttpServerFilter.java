@@ -562,6 +562,12 @@ public class HttpServerFilter extends HttpCodecFilter {
 
         final MimeHeaders headers = request.getHeaders();
 
+        //here we can add validation to prevent Http Server invalid use of headers
+        if (headers.contains(Header.ContentLength.getLowerCase()) && headers.contains(Header.TransferEncoding.getLowerCase())) {
+            request.getProcessingState().error = true;
+            return;
+        }
+        
         DataChunk hostDC = null;
 
         // Check for a full URI (including protocol://host:port/)
