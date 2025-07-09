@@ -561,7 +561,7 @@ public class HttpServerFilter extends HttpCodecFilter {
         }
 
         final MimeHeaders headers = request.getHeaders();
-        //here qe can add validation:
+        //here we can add validation to prevent Http Server Smuggling
         if (headers.contains(Header.ContentLength.getLowerCase()) && headers.contains(Header.TransferEncoding.getLowerCase())) {
             request.getProcessingState().error = true;
             return;
