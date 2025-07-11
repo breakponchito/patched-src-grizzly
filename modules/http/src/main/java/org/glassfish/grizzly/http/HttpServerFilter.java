@@ -25,6 +25,8 @@ import static org.glassfish.grizzly.http.util.HttpCodecUtils.toCheckedByteArray;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -58,6 +60,7 @@ import org.glassfish.grizzly.utils.DelayedExecutor;
  */
 public class HttpServerFilter extends HttpCodecFilter {
     public static final String HTTP_SERVER_REQUEST_ATTR_NAME = HttpServerFilter.class.getName() + ".HttpRequest";
+    private final static Logger LOGGER = Grizzly.logger(HttpServerFilter.class);
 
     public static final FilterChainEvent RESPONSE_COMPLETE_EVENT = new HttpEvents.ResponseCompleteEvent();
 
@@ -561,8 +564,9 @@ public class HttpServerFilter extends HttpCodecFilter {
         }
 
         final MimeHeaders headers = request.getHeaders();
-        //here qe can add validation:
-        if (headers.contains(Header.ContentLength.getLowerCase()) && headers.contains(Header.TransferEncoding.getLowerCase())) {
+        //here we can add validation to prevent Http Server invalid use of headers
+        if (headers.contains(Header.ContentLength) && headers.contains(Header.TransferEncoding)) {
+            LOGGER.log(Level.SEVERE, "Can't use both headers Content-Length and Transfer-Encoding from the same request");
             request.getProcessingState().error = true;
             return;
         }
