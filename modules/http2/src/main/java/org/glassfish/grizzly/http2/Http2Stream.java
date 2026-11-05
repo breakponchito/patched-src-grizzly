@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2012, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Payara Foundation and/or its affiliates.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -480,15 +481,15 @@ public class Http2Stream implements AttributeStorage, OutputSink, Closeable {
     }
 
     private void closedStateSwitch() {
+        // By the time this runs, completeFinalizationCounter has reached 2: both the local input and
+        // the local output have fully finished. There is nothing left to send or receive locally, so
+        // CLOSED is the only correct terminal state here, regardless of what the frame-driven state
+        // machine (onReceiveEndOfStream()/onSendEndOfStream()) currently reports. Relying on that
+        // machine's partial, two-case view of this transition left bodied streams
+        // stuck at HALF_CLOSED_LOCAL forever, because its only call site for the matching receive-side
+        // transition (onReceiveEndOfStream()) was never wired up for a DATA-frame-carried END_STREAM.
         synchronized (this) {
-            switch (state) {
-                case OPEN:
-                    state = State.HALF_CLOSED_LOCAL;
-                    break;
-                case HALF_CLOSED_REMOTE:
-                    state = State.CLOSED;
-                    break;
-            }
+            state = State.CLOSED;
         }
     }
 
@@ -593,6 +594,14 @@ public class Http2Stream implements AttributeStorage, OutputSink, Closeable {
 
         if (isFirstBufferCached) {
             http2Session.streamsToFlushInput.add(this);
+        }
+
+        // END_STREAM arriving on a DATA frame (i.e. the request had a body) must drive the same
+        // receive-side protocol transition as END_STREAM arriving on a HEADERS frame already does in
+        // onRcvHeaders() above. Without this, a bodied stream's "state" never leaves OPEN/HALF_CLOSED_LOCAL
+        // via the receive side at all
+        if (fin) {
+            onReceiveEndOfStream();
         }
     }
 
