@@ -481,15 +481,20 @@ public class Http2Stream implements AttributeStorage, OutputSink, Closeable {
     }
 
     private void closedStateSwitch() {
-        // By the time this runs, completeFinalizationCounter has reached 2: both the local input and
-        // the local output have fully finished. There is nothing left to send or receive locally, so
-        // CLOSED is the only correct terminal state here, regardless of what the frame-driven state
-        // machine (onReceiveEndOfStream()/onSendEndOfStream()) currently reports. Relying on that
-        // machine's partial, two-case view of this transition left bodied streams
-        // stuck at HALF_CLOSED_LOCAL forever, because its only call site for the matching receive-side
-        // transition (onReceiveEndOfStream()) was never wired up for a DATA-frame-carried END_STREAM.
+        // Local input and output are both finished, but that does not mean the peer has finished sending:
+        // the input may have been terminated early (e.g. a response sent without reading the request body).
+        // Only move to CLOSED if END_STREAM has already been received; otherwise stay HALF_CLOSED_LOCAL so
+        // that the peer's remaining DATA frames are still accepted, and let onReceiveEndOfStream() or
+        // onReset() complete the transition.
         synchronized (this) {
-            state = State.CLOSED;
+            switch (state) {
+                case OPEN:
+                    state = State.HALF_CLOSED_LOCAL;
+                    break;
+                case HALF_CLOSED_REMOTE:
+                    state = State.CLOSED;
+                    break;
+            }
         }
     }
 
@@ -520,8 +525,9 @@ public class Http2Stream implements AttributeStorage, OutputSink, Closeable {
 
             break;
         case 2: { // might be a trailing headers, which is ok
-            if (isEOS) {
-                break; // trailing headers
+            if (isEOS) { // trailing headers
+                onReceiveEndOfStream();
+                break;
             }
 
             // otherwise goto "default" and throw an error
@@ -596,10 +602,9 @@ public class Http2Stream implements AttributeStorage, OutputSink, Closeable {
             http2Session.streamsToFlushInput.add(this);
         }
 
-        // END_STREAM arriving on a DATA frame (i.e. the request had a body) must drive the same
-        // receive-side protocol transition as END_STREAM arriving on a HEADERS frame already does in
-        // onRcvHeaders() above. Without this, a bodied stream's "state" never leaves OPEN/HALF_CLOSED_LOCAL
-        // via the receive side at all
+        // END_STREAM on a DATA frame (i.e. the request had a body) must drive the same receive-side
+        // transition as END_STREAM on a HEADERS frame does in onRcvHeaders(). Otherwise the stream never
+        // reaches CLOSED and is never removed from Http2Session's streams map.
         if (fin) {
             onReceiveEndOfStream();
         }
