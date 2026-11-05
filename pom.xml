@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.glassfish.grizzly</groupId>
         <artifactId>grizzly-bom</artifactId>
-        <version>5.0.3.payara-p1-SNAPSHOT</version>
+        <version>5.0.3.payara-p1</version>
         <relativePath>boms/bom/pom.xml</relativePath>
     </parent>
 
