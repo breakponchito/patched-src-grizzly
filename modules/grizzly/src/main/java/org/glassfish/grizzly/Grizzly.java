@@ -32,7 +32,7 @@ import org.glassfish.grizzly.attributes.AttributeBuilder;
  * @author Hubert Iwaniuk
  */
 public class Grizzly {
-    private static final Pattern versionPattern = Pattern.compile("((\\d+)\\.(\\d+)(\\.\\d+)*){1}(?:-(.+))?");
+    private static final Pattern versionPattern = Pattern.compile("((\\d+)\\.(\\d+)(\\.\\d+)*){1}(?:[.-](.+))?");
 
     public static final AttributeBuilder DEFAULT_ATTRIBUTE_BUILDER = AttributeBuilder.DEFAULT_ATTRIBUTE_BUILDER;
 
