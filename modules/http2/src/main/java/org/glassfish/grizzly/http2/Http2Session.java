@@ -1326,8 +1326,16 @@ public class Http2Session {
                 }
             }
 
+            final List<Http2Stream> streams;
+            synchronized (sessionLock) {
+                streams = new ArrayList<>(streamsMap.values());
+                // The connection is gone, so no frame can be routed to these streams any more. Dropping them here
+                // keeps a closed session that is still referenced elsewhere from also retaining all of its streams.
+                streamsMap.clear();
+            }
+
             if (isClosing) {
-                for (Http2Stream stream : streamsMap.values()) {
+                for (Http2Stream stream : streams) {
                     stream.closedRemotely();
                 }
             }

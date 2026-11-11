@@ -244,6 +244,9 @@ public class Response {
         sendFileEnabled = false;
         response = null;
         ctx = null;
+        // Pooled responses live on in ThreadCache; a stale HttpContext would keep the last Http2Stream (and its
+        // session and connection) reachable until this worker thread serves another request.
+        httpContext = null;
         suspendState = SuspendState.NONE;
 
         cacheEnabled = false;
