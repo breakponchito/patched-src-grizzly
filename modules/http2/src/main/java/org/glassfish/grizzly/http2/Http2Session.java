@@ -186,10 +186,13 @@ public class Http2Session {
         this.handlerFilter = handlerFilter;
 
         this.http2Configuration = handlerFilter.getConfiguration();
-        streamsHighWaterMark =
-                Float.valueOf(
-                        getDefaultMaxConcurrentStreams() * http2Configuration.getStreamsHighWaterMark())
-                        .intValue();
+        // Apply the configured max concurrent streams here, so sessions created directly by Http2ServerFilter
+        // (h2c upgrade, prior knowledge) honor it too, not only those created through createHttp2Session().
+        if (http2Configuration.getMaxConcurrentStreams() != -1) {
+            setLocalMaxConcurrentStreams(http2Configuration.getMaxConcurrentStreams());
+        } else {
+            setLocalMaxConcurrentStreams(getDefaultMaxConcurrentStreams());
+        }
 
         final int customMaxFramePayloadSz
                 = handlerFilter.getLocalMaxFramePayloadSize() > 0
@@ -488,7 +491,7 @@ public class Http2Session {
      */
     public void setLocalMaxConcurrentStreams(int localMaxConcurrentStreams) {
         this.localMaxConcurrentStreams = localMaxConcurrentStreams;
-        streamsHighWaterMark = Float.valueOf(localMaxConcurrentStreams * 0.5f).intValue();
+        streamsHighWaterMark = Float.valueOf(localMaxConcurrentStreams * http2Configuration.getStreamsHighWaterMark()).intValue();
     }
 
     /**
